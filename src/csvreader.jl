@@ -28,7 +28,7 @@ function io_next_token(io::IO, sep::Char, na::AbstractString,
                     !eof(f) && Base.peek(io) == Int('\n') && read(io, Char)
                     break
                 else
-                    throw(ArgumentError("separator or newline expected"*
+                    throw(ArgumentError("separator or newline expected "*
                                         "after closing quote in line $line"))
                 end
             else
@@ -125,10 +125,17 @@ end
     `parsers` controls what conversions `read_csv` tries to perform on
     data that is read in. Conversion is performed using `parse` function and
     `parsers` gives information in which sequence different types should be tried.
+
+    Additionally you can control how much data is read in using the parameters:
+    * `skiphead`: number of lines to skip on top of the file
+    * `nrows`: if `nothing`: all lines are read in,
+               if negative: number of parsed data lines to remove from the tail,
+               if positive: number of parsed data lines to keep at head
 """
 function read_csv(filename::AbstractString;
                   sep::Char=',', header::Bool=true, na::String="",
-                  parsers::Vector{DataType} = [Int, Float64])
+                  parsers::Vector{DataType} = [Int, Float64],
+                  skiphead::Int=0, nrows::Union{Int, Nothing}=nothing)
     if sep in [QUOTE_CHAR, '\n', '\r']
         throw(ArgumentError("sep is a quote char or a newline"))
     end
@@ -136,6 +143,9 @@ function read_csv(filename::AbstractString;
         throw(ArgumentError("na contains quote, separator or a newline"))
     end
     open(filename) do io
+        for i in 1:skiphead
+            readline(io)
+        end
         data = ingest_csv(io, sep, na, header)
         if header
             if isempty(data)
@@ -147,6 +157,13 @@ function read_csv(filename::AbstractString;
             end
             names = Symbol.(popfirst!(data))
         end
+        if !(nrows === nothing)
+            if nrows < 0
+                data = data[1:(end-nrows)]
+            else
+                data = data[1:nrows]
+            end
+        end
         if isempty(data)
             if header
                 return DataFrame([[] for i in 1:length(names)], names)
@@ -157,13 +174,13 @@ function read_csv(filename::AbstractString;
 
         ref_length = length(data[1])
         if header && length(names) != ref_length
-            throw(ArgumentError("data in line 1 has different number of " *
+            throw(ArgumentError("data in line 2 has different number of " *
                                 "columns than header"))
         end
         for (i, data_line) in enumerate(data)
             if length(data_line) != ref_length
-                throw(ArgumentError("data in line $i has different " *
-                                    "number of columns than data in line 1"))
+                throw(ArgumentError("data in line $(i+header) has different " *
+                                    "number of columns than data in line $(i+header)"))
             end
         end
         cols = [rep_try_parser(getindex.(data, i), parsers) for i in 1:ref_length]

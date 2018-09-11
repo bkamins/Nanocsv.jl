@@ -27,5 +27,6 @@ Reading CSV from disk:
 ```julia
 read_csv(filename::AbstractString;
          sep::Char=',', header::Bool=true, na::String="",
-         parsers::Vector{DataType} = [Int, Float64])
+         parsers::Vector{DataType} = [Int, Float64],
+         skiphead::Int=0, nrows::Union{Int, Nothing}=nothing)
 ```
