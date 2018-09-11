@@ -19,3 +19,11 @@ end
     @test isequal(df, df2)
     rm("test.csv")
 end
+
+@testset "minimal DataFrames" begin
+    df = DataFrame()
+    write_csv("test.csv", df)
+    df2 = read_csv("test.csv")
+    @test isequal(df, df2)
+    rm("test.csv")
+end

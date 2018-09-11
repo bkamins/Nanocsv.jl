@@ -7,7 +7,7 @@ function str_quote(str::AbstractString, sep::Char, na::AbstractString)::String
         end
     end
 
-    (do_quote && (str != na)) || return str
+    do_quote || str == na || return str
 
     io = IOBuffer(sizehint=sizeof(str)+8)
     write(io, QUOTE_CHAR)
