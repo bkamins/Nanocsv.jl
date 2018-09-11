@@ -47,10 +47,12 @@ function write_csv(filename::AbstractString, df::DataFrame;
         throw(ArgumentError("na contains quote, separator or a newline"))
     end
     open(filename, "w") do io
-        println(io, join(str_quote.(string.(names(df)), sep, na), sep))
-        for i in 1:nrow(df)
-            line = [quote_with_missing(df[i,j], sep, na) for j in 1:ncol(df)]
-            println(io, join(line, sep))
+        if !isempty(df)
+            println(io, join(str_quote.(string.(names(df)), sep, na), sep))
+            for i in 1:nrow(df)
+                line = [quote_with_missing(df[i,j], sep, na) for j in 1:ncol(df)]
+                println(io, join(line, sep))
+            end
         end
     end
 end
