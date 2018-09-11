@@ -24,7 +24,7 @@ end
     df = DataFrame()
     write_csv("test.csv", df)
     df2 = read_csv("test.csv")
-    @test isequal(df, df2)
+    @test_throws ArgumentError isequal(df, df2)
     rm("test.csv")
 
     df = DataFrame(:a=>[], :b=>[], Symbol("")=>[])
