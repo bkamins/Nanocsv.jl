@@ -6,7 +6,7 @@ using Nanocsv
     df = DataFrame(rand(Int, 5, 5))
     write_csv("test.csv", df)
     df2 = read_csv("test.csv")
-    @test df == df2
+    @test isequal(df, df2)
     rm("test.csv")
 end
 
@@ -22,6 +22,24 @@ end
 
 @testset "minimal DataFrames" begin
     df = DataFrame()
+    write_csv("test.csv", df)
+    df2 = read_csv("test.csv")
+    @test isequal(df, df2)
+    rm("test.csv")
+
+    df = DataFrame(:a=>[], :b=>[], Symbol("")=>[])
+    write_csv("test.csv", df)
+    df2 = read_csv("test.csv")
+    @test isequal(df, df2)
+    rm("test.csv")
+
+    df = DataFrame(Symbol("")=>missing)
+    write_csv("test.csv", df)
+    df2 = read_csv("test.csv")
+    @test isequal(df, df2)
+    rm("test.csv")
+
+    df = DataFrame(Symbol("")=>["",missing,""])
     write_csv("test.csv", df)
     df2 = read_csv("test.csv")
     @test isequal(df, df2)
