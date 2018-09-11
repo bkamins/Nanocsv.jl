@@ -6,7 +6,7 @@ It reads and writes `DataFrames` from/to file on disk.
 
 **Installation**: at the Julia REPL, `using Pkg; Pkg.add("DataFrames")`
 
-###Design
+### Design
 
 * always use `"` as quote character, `""` represents a quote in quoted field
 * you can change field separator using `sep` keyword argument
