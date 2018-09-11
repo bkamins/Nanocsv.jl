@@ -16,6 +16,6 @@ end
                    s1="s1", s2=["s2",missing,missing])
     write_csv("test.csv", df)
     df2 = read_csv("test.csv")
-    @test df == df2
+    @test isequal(df, df2)
     rm("test.csv")
 end
