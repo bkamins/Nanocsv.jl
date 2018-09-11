@@ -1,4 +1,6 @@
-function io_next_token(io::IO, sep::Char, na::AbstractString, line::Int)
+function io_next_token(io::IO, sep::Char, na::AbstractString,
+                       line::Int, hasheader::Bool)
+    isheader = line == 1 && hasheader
     eof(io) && return (val="", newline=false)
     buf = IOBuffer()
     c = read(io, Char)
@@ -35,14 +37,14 @@ function io_next_token(io::IO, sep::Char, na::AbstractString, line::Int)
         end
     else
         if c == sep
-            return (val = na == "" ? missing : "", newline=false)
+            return (val = !isheader && na == "" ? missing : "", newline=false)
         end
         if c == '\n'
-            return (val = na == "" ? missing : "", newline=true)
+            return (val = !isheader && na == "" ? missing : "", newline=true)
         end
         if c == '\r'
             !eof(f) && Base.peek(io) == Int('\n') && read(io, Char)
-            return (val = na == "" ? missing : "", newline=true)
+            return (val = !isheader && na == "" ? missing : "", newline=true)
         end
         write(buf, c)
         while !eof(io)
@@ -62,10 +64,10 @@ function io_next_token(io::IO, sep::Char, na::AbstractString, line::Int)
         end
     end
     val = String(take!(buf))
-    (val= ((!is_quoted) && val == na) ? missing : val, newline=newline)
+    (val= !is_quoted && !isheader && val == na ? missing : val, newline=newline)
 end
 
-function ingest_csv(io::IO, sep::Char, na::AbstractString)
+function ingest_csv(io::IO, sep::Char, na::AbstractString, hasheader::Bool)
     local line
     line_idx = 0
     data = Vector{Union{Missing,String}}[]
@@ -76,7 +78,7 @@ function ingest_csv(io::IO, sep::Char, na::AbstractString)
             line = Union{Missing,String}[]
             push!(data, line)
         end
-        val, newline = io_next_token(io, sep, na, line_idx)
+        val, newline = io_next_token(io, sep, na, line_idx, hasheader)
         push!(line, val)
     end
     data
@@ -110,9 +112,8 @@ end
     and `na` as string for representing missing value.
 
     If `header` is `true` then first line of the file is assumed to contain
-    column names. In such a case it is assumed that verbatim value `na` is not
-    present in this line (a warning will be printed). If column name is equal to
-    `na` it should be quoted in source file as `"na"`.
+    column names. In such a case it is assumed that verbatim value `na` is allowed
+    and is parsed as column name.
 
     `"` character is used for quoting fields. In quoted field use `""` to
     represent `"`.
@@ -135,15 +136,14 @@ function read_csv(filename::AbstractString;
         throw(ArgumentError("na contains quote, separator or a newline"))
     end
     open(filename) do io
-        data = ingest_csv(io, sep, na)
+        data = ingest_csv(io, sep, na, header)
         if header
             if isempty(data)
                 throw(ArgumentError("$filename has zero rows and header" *
                                     " was requested"))
             end
             if any(ismissing.(data[1]))
-                @warn "$filename had unquoted na in header, " *
-                      "parsing as \"missing\" column name"
+                @error "Unexpected error when parsing header of $filename"
             end
             names = Symbol.(popfirst!(data))
         end

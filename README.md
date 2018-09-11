@@ -12,7 +12,7 @@ It reads and writes `DataFrames` from/to file on disk.
 * you can change field separator using `sep` keyword argument
 * when data is written to disk then `string` function is used to get its representation
 * by default tries to parse columns to `Int`, `Float64`, `Date` or `DateTime` using `parse` function and falls back to `String`; you can change list or sequence of tried parsers using `parsers` keyword argument
-* handles missing values using `na` keyword argument; `na` is always *unquoted* when reading/writing; if string equal to `na` is written it is always quoted; if value equal to `na` is quoted in file then it is treated as a valid value not `missing`
+* handles missing values using `na` keyword argument; `na` is always *unquoted* when reading/writing (except if header line is present in a file as then it is read as is); if string equal to `na` is written it is always quoted; if value equal to `na` is quoted in file then it is treated as a valid value not `missing`
 
 ### Functions provided
 
