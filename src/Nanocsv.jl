@@ -1,7 +1,6 @@
 module Nanocsv
 
 using DataFrames
-using Dates
 
 export read_csv, write_csv
 

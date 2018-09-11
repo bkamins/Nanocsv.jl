@@ -106,7 +106,7 @@ end
 """
     read_csv(filename::AbstractString;
              sep::Char=',', header::Bool=true, na::String="",
-             parsers::Vector{DataType} = [Int, Float64, Date, DateTime])
+             parsers::Vector{DataType} = [Int, Float64])
 
     Reads `df` from `filename` CSV file to a `DataFrame` using `sep` separator
     and `na` as string for representing missing value.
@@ -128,7 +128,7 @@ end
 """
 function read_csv(filename::AbstractString;
                   sep::Char=',', header::Bool=true, na::String="",
-                  parsers::Vector{DataType} = [Int, Float64, Date, DateTime])
+                  parsers::Vector{DataType} = [Int, Float64])
     if sep in [QUOTE_CHAR, '\n', '\r']
         throw(ArgumentError("sep is a quote char or a newline"))
     end
