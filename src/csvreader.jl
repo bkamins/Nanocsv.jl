@@ -23,8 +23,7 @@ function io_next_token(io::IO, sep::Char, na::AbstractString, line::Int)
                     break
                 elseif c == '\r'
                     newline = true
-                    eof(f) && break
-                    Base.peek(io) == Int('\n') && read(io, Char)
+                    !eof(f) && Base.peek(io) == Int('\n') && read(io, Char)
                     break
                 else
                     throw(ArgumentError("separator or newline expected"*
@@ -35,8 +34,15 @@ function io_next_token(io::IO, sep::Char, na::AbstractString, line::Int)
             end
         end
     else
-        if c in [sep, '\n', '\r']
+        if c == sep
             return (val = na == "" ? missing : "", newline=false)
+        end
+        if c == '\n'
+            return (val = na == "" ? missing : "", newline=true)
+        end
+        if c == '\r'
+            !eof(f) && Base.peek(io) == Int('\n') && read(io, Char)
+            return (val = na == "" ? missing : "", newline=true)
         end
         write(buf, c)
         while !eof(io)
@@ -62,12 +68,12 @@ end
 function ingest_csv(io::IO, sep::Char, na::AbstractString)
     local line
     line_idx = 0
-    data = Vector{String}[]
+    data = Vector{Union{Missing,String}}[]
     newline = true
     while !eof(io)
         if newline
             line_idx += 1
-            line = String[]
+            line = Union{Missing,String}[]
             push!(data, line)
         end
         val, newline = io_next_token(io, sep, na, line_idx)
@@ -92,7 +98,7 @@ function rep_try_parser(col::Vector{<:Union{Missing, String}},
         new_col = try_parser(col, parser)
         new_col === nothing || return new_col
     end
-    col
+    any(ismissing.(col)) ? col : Vector{String}(col)
 end
 
 """
