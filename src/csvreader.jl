@@ -35,7 +35,9 @@ function io_next_token(io::IO, sep::Char, na::AbstractString, line::Int)
             end
         end
     else
-        c == sep && return (val="", newline=false)
+        if c in [sep, '\n', '\r']
+            return (val = na == "" ? missing : "", newline=false)
+        end
         write(buf, c)
         while !eof(io)
             c = read(io, Char)
@@ -54,7 +56,7 @@ function io_next_token(io::IO, sep::Char, na::AbstractString, line::Int)
         end
     end
     val = String(take!(buf))
-    (val= (!is_quoted) && val == na ? missing : val, newline=newline)
+    (val= ((!is_quoted) && val == na) ? missing : val, newline=newline)
 end
 
 function ingest_csv(io::IO, sep::Char, na::AbstractString)
