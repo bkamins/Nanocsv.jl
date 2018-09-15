@@ -105,10 +105,10 @@ end
 
 """
     read_csv(filename::AbstractString;
-             sep::Char=',', header::Bool=true, na::String="",
+             sep::Char=',', header::Bool=true, na::AbstractString="",
              parsers::Vector{DataType} = [Int, Float64])
 
-    Reads `df` from `filename` CSV file to a `DataFrame` using `sep` separator
+    Reads from `filename` CSV file to a `DataFrame` using `sep` separator
     and `na` as string for representing missing value.
 
     If `header` is `true` then first line of the file is assumed to contain
@@ -133,7 +133,7 @@ end
                if positive: number of parsed data lines to keep at head
 """
 function read_csv(filename::AbstractString;
-                  sep::Char=',', header::Bool=true, na::String="",
+                  sep::Char=',', header::Bool=true, na::AbstractString="",
                   parsers::Vector{DataType} = [Int, Float64],
                   skiphead::Int=0, nrows::Union{Int, Nothing}=nothing)
     if sep in [QUOTE_CHAR, '\n', '\r']
