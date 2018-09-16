@@ -95,7 +95,7 @@ function try_parser(col::Vector{<:Union{Missing, String}}, parser::DataType)
 end
 
 function rep_try_parser(col::Vector{<:Union{Missing, String}},
-                        parsers::Vector{DataType})
+                        parsers::Vector)
     for parser in parsers
         new_col = try_parser(col, parser)
         new_col === nothing || return new_col
@@ -106,7 +106,7 @@ end
 """
     read_csv(filename::AbstractString;
              sep::Char=',', header::Bool=true, na::AbstractString="",
-             parsers::Vector{DataType} = [Int, Float64])
+             parsers::Vector = [Int, Float64])
 
     Reads from `filename` CSV file to a `DataFrame` using `sep` separator
     and `na` as string for representing missing value.
@@ -134,7 +134,7 @@ end
 """
 function read_csv(filename::AbstractString;
                   sep::Char=',', header::Bool=true, na::AbstractString="",
-                  parsers::Vector{DataType} = [Int, Float64],
+                  parsers::Vector = [Int, Float64],
                   skiphead::Int=0, nrows::Union{Int, Nothing}=nothing)
     if sep in [QUOTE_CHAR, '\n', '\r']
         throw(ArgumentError("sep is a quote char or a newline"))
