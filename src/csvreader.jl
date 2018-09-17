@@ -1,4 +1,4 @@
-function io_next_token(io::IO, sep::Char, na::AbstractString,
+function io_next_token(io::IO, delim::Char, na::AbstractString,
                        line::Int, hasheader::Bool)
     isheader = line == 1 && hasheader
     eof(io) && return (val="", newline=false)
@@ -18,7 +18,7 @@ function io_next_token(io::IO, sep::Char, na::AbstractString,
                 c = read(io, Char)
                 if c == QUOTE_CHAR
                     write(buf, QUOTE_CHAR)
-                elseif c == sep
+                elseif c == delim
                     break
                 elseif c == '\n'
                     newline = true
@@ -36,7 +36,7 @@ function io_next_token(io::IO, sep::Char, na::AbstractString,
             end
         end
     else
-        if c == sep
+        if c == delim
             return (val = !isheader && na == "" ? missing : "", newline=false)
         end
         if c == '\n'
@@ -49,7 +49,7 @@ function io_next_token(io::IO, sep::Char, na::AbstractString,
         write(buf, c)
         while !eof(io)
             c = read(io, Char)
-            c == sep && break
+            c == delim && break
             if c == '\n'
                 newline = true
                 break
@@ -67,7 +67,7 @@ function io_next_token(io::IO, sep::Char, na::AbstractString,
     (val= !is_quoted && !isheader && val == na ? missing : val, newline=newline)
 end
 
-function ingest_csv(io::IO, sep::Char, na::AbstractString, hasheader::Bool)
+function ingest_csv(io::IO, delim::Char, na::AbstractString, hasheader::Bool)
     local line
     line_idx = 0
     data = Vector{Union{Missing,String}}[]
@@ -78,7 +78,7 @@ function ingest_csv(io::IO, sep::Char, na::AbstractString, hasheader::Bool)
             line = Union{Missing,String}[]
             push!(data, line)
         end
-        val, newline = io_next_token(io, sep, na, line_idx, hasheader)
+        val, newline = io_next_token(io, delim, na, line_idx, hasheader)
         push!(line, val)
     end
     data
@@ -105,10 +105,10 @@ end
 
 """
     read_csv(filename::AbstractString;
-             sep::Char=',', header::Bool=true, na::AbstractString="",
+             delim::Char=',', header::Bool=true, na::AbstractString="",
              parsers::Vector = [Int, Float64])
 
-    Reads from `filename` CSV file to a `DataFrame` using `sep` separator
+    Reads from `filename` CSV file to a `DataFrame` using `delim` separator
     and `na` as string for representing missing value.
 
     If `header` is `true` then first line of the file is assumed to contain
@@ -133,20 +133,20 @@ end
                if positive: number of parsed data lines to keep at head
 """
 function read_csv(filename::AbstractString;
-                  sep::Char=',', header::Bool=true, na::AbstractString="",
+                  delim::Char=',', header::Bool=true, na::AbstractString="",
                   parsers::Vector = [Int, Float64],
                   skiphead::Int=0, nrows::Union{Int, Nothing}=nothing)
-    if sep in [QUOTE_CHAR, '\n', '\r']
-        throw(ArgumentError("sep is a quote char or a newline"))
+    if delim in [QUOTE_CHAR, '\n', '\r']
+        throw(ArgumentError("delim is a quote char or a newline"))
     end
-    if any(occursin.([QUOTE_CHAR, sep, '\n', '\r'], na))
+    if any(occursin.([QUOTE_CHAR, delim, '\n', '\r'], na))
         throw(ArgumentError("na contains quote, separator or a newline"))
     end
     open(filename) do io
         for i in 1:skiphead
             readline(io)
         end
-        data = ingest_csv(io, sep, na, header)
+        data = ingest_csv(io, delim, na, header)
         if header
             if isempty(data)
                 throw(ArgumentError("$filename has zero rows and header" *

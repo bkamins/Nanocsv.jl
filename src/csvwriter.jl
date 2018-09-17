@@ -1,7 +1,7 @@
-function str_quote(str::AbstractString, sep::Char, na::AbstractString)::String
+function str_quote(str::AbstractString, delim::Char, na::AbstractString)::String
     do_quote = false
     for c in str
-        if c in [QUOTE_CHAR, sep, '\n', '\r']
+        if c in [QUOTE_CHAR, delim, '\n', '\r']
             do_quote = true
             break
         end
@@ -22,14 +22,14 @@ function str_quote(str::AbstractString, sep::Char, na::AbstractString)::String
     String(take!(io))
 end
 
-quote_with_missing(val, sep, na) =
-    ismissing(val) ? na : str_quote(string(val), sep, na)
+quote_with_missing(val, delim, na) =
+    ismissing(val) ? na : str_quote(string(val), delim, na)
 
 """
     write_csv(filename::AbstractString, df::DataFrame;
-              sep::Char=',', na::AbstractString="")
+              delim::Char=',', na::AbstractString="")
 
-    Writes `df` to disk as `filename` CSV file using `sep` separator
+    Writes `df` to disk as `filename` CSV file using `delim` separator
     and `na` as string for representing missing value.
 
     `"` character is used for quoting fields. In quoted field use `""` to
@@ -39,19 +39,19 @@ quote_with_missing(val, sep, na) =
     If a string is equal to `na` then it is written to CSV quoted as `"na"`.
 """
 function write_csv(filename::AbstractString, df::DataFrame;
-                   sep::Char=',', na::AbstractString="")
-    if sep in [QUOTE_CHAR, '\n', '\r']
-        throw(ArgumentError("sep is a quote char or a newline"))
+                   delim::Char=',', na::AbstractString="")
+    if delim in [QUOTE_CHAR, '\n', '\r']
+        throw(ArgumentError("delim is a quote char or a newline"))
     end
-    if any(occursin.([QUOTE_CHAR, sep, '\n', '\r'], na))
+    if any(occursin.([QUOTE_CHAR, delim, '\n', '\r'], na))
         throw(ArgumentError("na contains quote, separator or a newline"))
     end
     open(filename, "w") do io
         if length(names(df)) > 0
-            println(io, join(str_quote.(string.(names(df)), sep, na), sep))
+            println(io, join(str_quote.(string.(names(df)), delim, na), delim))
             for i in 1:nrow(df)
-                line = [quote_with_missing(df[i,j], sep, na) for j in 1:ncol(df)]
-                println(io, join(line, sep))
+                line = [quote_with_missing(df[i,j], delim, na) for j in 1:ncol(df)]
+                println(io, join(line, delim))
             end
         end
     end
