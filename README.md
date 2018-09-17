@@ -4,9 +4,9 @@ Nanocsv.jl
 A minimal implementation of CSV reader/writer for Julia.
 It reads and writes `DataFrames` from/to file on disk.
 
-**Installation**: at the Julia REPL, `using Pkg; Pkg.add("DataFrames")`
+**Installation**: at the Julia REPL, `using Pkg; Pkg.add("https://github.com/bkamins/Nanocsv.jl")`
 
-###Design
+### Design
 
 * always use `"` as quote character, `""` represents a quote in quoted field
 * you can change field separator using `delim` keyword argument
