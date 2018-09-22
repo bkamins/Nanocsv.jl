@@ -57,7 +57,7 @@ function io_next_token(io::IO, delim::Char, na::AbstractString,
             if c == '\r'
                 newline = true
                 eof(io) && break
-                Base.peek(io) == Int(`\n`) && read(io, Char)
+                Base.peek(io) == Int('\n') && read(io, Char)
                 break
             end
             write(buf, c)
