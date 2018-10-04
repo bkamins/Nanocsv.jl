@@ -19,12 +19,18 @@ It reads and writes `DataFrames` from/to file on disk.
 
 Writing CSV to disk:
 ```julia
+write_csv(io::IO, df::DataFrame;
+          delim::Char=',', na::AbstractString="")
 write_csv(filename::AbstractString, df::DataFrame;
           delim::Char=',', na::AbstractString="")
 ```
 
 Reading CSV from disk:
 ```julia
+read_csv(io::IO;
+         delim::Char=',', header::Bool=true, na::String="",
+         parsers::Vector{DataType} = [Int, Float64],
+         skiphead::Int=0, nrows::Union{Int, Nothing}=nothing)
 read_csv(filename::AbstractString;
          delim::Char=',', header::Bool=true, na::String="",
          parsers::Vector{DataType} = [Int, Float64],
