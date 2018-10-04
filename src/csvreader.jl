@@ -104,12 +104,15 @@ function rep_try_parser(col::Vector{<:Union{Missing, String}},
 end
 
 """
+    read_csv(io::IO;
+         delim::Char=',', header::Bool=true, na::AbstractString="",
+         parsers::Vector = [Int, Float64])
     read_csv(filename::AbstractString;
              delim::Char=',', header::Bool=true, na::AbstractString="",
              parsers::Vector = [Int, Float64])
 
-    Reads from `filename` CSV file to a `DataFrame` using `delim` separator
-    and `na` as string for representing missing value.
+    Reads CSV from `io` stream or `filename` file to a `DataFrame` using
+    `delim` separator and `na` as string for representing missing value.
 
     If `header` is `true` then first line of the file is assumed to contain
     column names. In such a case it is assumed that verbatim value `na` is allowed
@@ -142,49 +145,57 @@ function read_csv(filename::AbstractString;
     if any(occursin.([QUOTE_CHAR, delim, '\n', '\r'], na))
         throw(ArgumentError("na contains quote, separator or a newline"))
     end
-    open(filename) do io
-        for i in 1:skiphead
-            readline(io)
-        end
-        data = ingest_csv(io, delim, na, header)
-        if header
-            if isempty(data)
-                throw(ArgumentError("$filename has zero rows and header" *
-                                    " was requested"))
-            end
-            if any(ismissing.(data[1]))
-                @error "Unexpected error when parsing header of $filename"
-            end
-            names = Symbol.(popfirst!(data))
-        end
-        if !(nrows === nothing)
-            if nrows < 0
-                data = data[1:(end-nrows)]
-            else
-                data = data[1:nrows]
-            end
-        end
-        if isempty(data)
-            if header
-                return DataFrame([[] for i in 1:length(names)], names)
-            else
-                return DataFrame()
-            end
-        end
-
-        ref_length = length(data[1])
-        if header && length(names) != ref_length
-            throw(ArgumentError("data in line 2 has different number of " *
-                                "columns than header"))
-        end
-        for (i, data_line) in enumerate(data)
-            if length(data_line) != ref_length
-                throw(ArgumentError("data in line $(i+header) has different " *
-                                    "number of columns than data in line $(i+header)"))
-            end
-        end
-        cols = [rep_try_parser(getindex.(data, i), parsers) for i in 1:ref_length]
-        header ? DataFrame(cols, names) : DataFrame(cols)
+    for i in 1:skiphead
+        readline(io)
     end
+
+    data = ingest_csv(io, delim, na, header)
+    if header
+        if isempty(data)
+            throw(ArgumentError("$filename has zero rows and header" *
+                                " was requested"))
+        end
+        if any(ismissing.(data[1]))
+            @error "Unexpected error when parsing header of $filename"
+        end
+        names = Symbol.(popfirst!(data))
+    end
+    if !(nrows === nothing)
+        if nrows < 0
+            data = data[1:(end-nrows)]
+        else
+            data = data[1:nrows]
+        end
+    end
+    if isempty(data)
+        if header
+            return DataFrame([[] for i in 1:length(names)], names)
+        else
+            return DataFrame()
+        end
+    end
+
+    ref_length = length(data[1])
+    if header && length(names) != ref_length
+        throw(ArgumentError("data in line 2 has different number of " *
+                            "columns than header"))
+    end
+    for (i, data_line) in enumerate(data)
+        if length(data_line) != ref_length
+            throw(ArgumentError("data in line $(i+header) has different " *
+                                "number of columns than data in line $(i+header)"))
+        end
+    end
+    cols = [rep_try_parser(getindex.(data, i), parsers) for i in 1:ref_length]
+    header ? DataFrame(cols, names) : DataFrame(cols)
 end
 
+function read_csv(filename::AbstractString;
+                  delim::Char=',', header::Bool=true, na::AbstractString="",
+                  parsers::Vector = [Int, Float64],
+                  skiphead::Int=0, nrows::Union{Int, Nothing}=nothing)
+    open(filename) do io
+        read_csv(io, delim=delim, header=header, na=na, parsers=parsers,
+                 skiphead=skiphead, nrows=nrows)
+    end
+end
