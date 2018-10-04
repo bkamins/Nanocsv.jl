@@ -25,7 +25,7 @@ function io_next_token(io::IO, delim::Char, na::AbstractString,
                     break
                 elseif c == '\r'
                     newline = true
-                    !eof(f) && Base.peek(io) == Int('\n') && read(io, Char)
+                    !eof(io) && Base.peek(io) == Int('\n') && read(io, Char)
                     break
                 else
                     throw(ArgumentError("separator or newline expected "*
@@ -43,7 +43,7 @@ function io_next_token(io::IO, delim::Char, na::AbstractString,
             return (val = !isheader && na == "" ? missing : "", newline=true)
         end
         if c == '\r'
-            !eof(f) && Base.peek(io) == Int('\n') && read(io, Char)
+            !eof(io) && Base.peek(io) == Int('\n') && read(io, Char)
             return (val = !isheader && na == "" ? missing : "", newline=true)
         end
         write(buf, c)
