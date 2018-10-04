@@ -135,7 +135,7 @@ end
                if negative: number of parsed data lines to remove from the tail,
                if positive: number of parsed data lines to keep at head
 """
-function read_csv(filename::AbstractString;
+function read_csv(io::IO;
                   delim::Char=',', header::Bool=true, na::AbstractString="",
                   parsers::Vector = [Int, Float64],
                   skiphead::Int=0, nrows::Union{Int, Nothing}=nothing)
