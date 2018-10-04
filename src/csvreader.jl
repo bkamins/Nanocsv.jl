@@ -152,11 +152,11 @@ function read_csv(io::IO;
     data = ingest_csv(io, delim, na, header)
     if header
         if isempty(data)
-            throw(ArgumentError("$filename has zero rows and header" *
+            throw(ArgumentError("Source has zero rows and header" *
                                 " was requested"))
         end
         if any(ismissing.(data[1]))
-            @error "Unexpected error when parsing header of $filename"
+            @error "Unexpected error when parsing header of source"
         end
         names = Symbol.(popfirst!(data))
     end
